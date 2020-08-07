@@ -1,3 +1,4 @@
+// Dados
 const proffys = [
   {
     name: "Diego Fernandes",
@@ -23,31 +24,78 @@ const proffys = [
   }
 ];
 
+const subjects = [
+  "Artes",
+  "Biologia",
+  "Ciencias",
+  "Educacao Fisica",
+  "Fisica",
+  "Geografia",
+  "Historia",
+  "Matematica",
+  "Portugues",
+  "Quimica",
+];
+
+const weekdays = [
+  "Domingo",
+  "Segunda-feira",
+  "Terca-feira",
+  "Quarta-feira",
+  "Quinta-feira",
+  "Sexta-feira",
+  "Sabado",
+];
+
+// Funcionalidades
+function getSubject(subjectNumber) {
+  const position = +subjectNumber - 1;
+  return subjects[position];
+}
+
 function pageLanding(req, res) {
-   return res.sendFile(__dirname + "/views/index.html");
+  return res.render("index.html");
 }
 
 function pageStudy(req, res) {
-   return res.sendFile(__dirname + "/views/study.html");
+  const filters = req.query;
+  return res.render("study.html", { proffys, filters, subjects, weekdays });
 }
 
 function pageGiveClasses(req, res) {
-   return res.sendFile(__dirname + "/views/give-classes.html");
+  const data = req.query;
+  const isNotEmpty = Object.keys(data).length > 0;
+
+  // se tiver dados
+  if(isNotEmpty){
+    data.subject = getSubject(data.subject);
+    // adicionar dados a lista de proffys
+    proffys.push(data);
+
+    return res.redirect("/study");
+  }
+
+   // se nao, mostrar a página
+
+  return res.render("give-classes.html", { subjects, weekdays });
 }
 
+// Servidor
 const express = require("express");
 const server = express();
 const nunjucks = require("nunjucks");
 
-// configurar nunjucks
+// configurar nunjucks (template engine)
 nunjucks.configure("src/views", {
   express: server,
   noCache: true,
 });
 
+// inicio e configuracao do servidor
 server
   .use(express.static("public")) // configurar arquivos estáticos (css, scripts, imagens)
   .get("/", pageLanding) // rotas da aplicação
   .get("/study", pageStudy)
   .get("/give-classes", pageGiveClasses)
+  // start do servidor
   .listen(5500);
